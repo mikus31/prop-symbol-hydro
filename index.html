@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset=utf-8 />
+    <title>Hydro Power in the United States</title>
+    <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.2/dist/leaflet.css" />
+    <link href='http://fonts.googleapis.com/css?family=Lato' rel='stylesheet' type='text/css'>
+    <link href="https://fonts.googleapis.com/css?family=Slabo+27px" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: whitesmoke;
+            font-family: 'Slabo 27px', serif;
+            color: #0D0000;
+        }
+        
+        header {
+            padding: 6px 10%;
+        }
+        
+        h1 {
+            display: inline-block;
+            margin-right: 20px;
+            color: #001323;
+        }
+        
+        h2 {
+            display: inline-block;
+            color: #001323;
+        }
+        
+        #map {
+            width: 80%;
+            height: 540px;
+            margin: 10px auto;
+        }
+        
+        footer {
+            padding: 6px 10%;
+            width: 80%;
+        }
+        
+        p {
+            font-size: 1em;
+            color: #001323;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>Hydro Power In The United States</h1>
+        <h2>(By Megawatts)</h2> </header>
+    <div id='map'></div>
+    <footer>
+        <h3>About This Map</h3>
+        <p>Power production of hydroelectric facilities in the United States of America. The symbols are proportional to the amount of power produced by each plant.</p>
+        <p>Map authored by: R. Michael McNeil III
+            <br> Date: November 30, 2016</p>
+        <ul>
+            <li>See my projects on GitHub: <a href="https://github.com/mikus31">R. Michael McNeil III</a></li>
+            <li>Follow me on twitter: <a href="https://twitter.com/manandplace">@ManandPlace</a></li>
+            <li>Visit my <a href='https://mikus31.carto.com/me'>mapping portfolio</a>.</li>
+        </ul>
+    </footer>
+    <script src="https://unpkg.com/leaflet@1.0.2/dist/leaflet.js"></script>
+    <script src="power-plants.js"></script>
+    <script>
+        var map = L.map('map', {
+            center: [36, -94]
+            , zoom: 4
+        , });
+        var tiles = L.tileLayer('http://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a>'
+            , subdomains: 'abcd'
+            , maxZoom: 19
+        });
+        tiles.addTo(map);
+        plants.features.sort(function (a, b) {
+            return b.properties.capacity_mw - a.properties.capacity_mw;
+        });
+        L.geoJson(plants, {
+            pointToLayer: function (feature, latlng) {
+                return L.circleMarker(latlng, {
+                    color: 'blue'
+                    , weight: 1
+                    , fillColor: 'lightblue'
+                    , fillOpacity: 0.8
+                    , radius: getRadius(feature.properties.capacity_mw)
+                });
+            }
+            , onEachFeature: function (feature, layer) {
+                // console.log(layer);
+                layer.on('mouseover', function () {
+                    layer.setStyle({
+                        fillColor: 'yellow'
+                    });
+                });
+                layer.on('mouseout', function () {
+                    layer.setStyle({
+                        fillColor: 'lightblue'
+                    });
+                });
+                layer.bindPopup("<b>" + "Name: " + feature.properties.plant_name + "</b>" + "<br>" + "Production: " + feature.properties.capacity_mw + " MW");
+            }
+            , filter: function (feature, layer) {
+                if (feature.properties.fuel_source.Hydro) {
+                    return feature;
+                }
+            }
+        }).addTo(map);
+
+        function getRadius(area) {
+            var radius = Math.sqrt(area / Math.PI);
+            return radius * 0.6;
+        }
+    </script>
+</body>
+
+</html>
